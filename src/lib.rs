@@ -25,16 +25,36 @@ pub trait Unique: pvt::Unique {}
 
 impl<T: pvt::Unique> Unique for T {}
 
+/// A set of values that can only be constructed through the
+/// [`Set::unique`] function
+#[doc(hidden)]
+#[derive(PartialEq, Eq)]
+pub struct Set(u32, u32, &'static str);
+
+impl Set {
+    /// Constructs a new set of values that are unique from any other
+    /// generated with this function
+    ///
+    /// # Safety
+    ///
+    /// This function is safe only if:
+    /// - `C` is [`std::column!`]
+    /// - `L` is [`std::line!`]
+    /// - `F` is [`std::file!`]
+    pub const unsafe fn unique<const C: u32, const L: u32, const F: &'static str>() -> Self {
+        Self(C, L, F)
+    }
+}
+
 /// A template-like type for generating unique types
 ///
-/// This type is guaranteed to be unique as long as the following restrictions apply:
-/// - `C` has to be initialized with [`std::column!`]
-/// - `L` has to be initialized with [`std::line!`]
-/// - `F` has to be initialized with [`std::file!`]
+/// The uniqueness of this type is based on the [`Set`] type which
+/// can only be safe constructed with unique values thus making every
+/// "specialization" of this type generate a different type-id
 #[doc(hidden)]
-pub struct Template<const C: u32, const L: u32, const F: &'static str>(());
+pub struct Template<const T: Set>(());
 
-impl<const C: u32, const L: u32, const F: &'static str> pvt::Unique for Template<C, L, F> {}
+impl<const T: Set> pvt::Unique for Template<T> {}
 
 /// Generates a unique type that implements the [`Unique`] trait
 ///
@@ -62,6 +82,11 @@ impl<const C: u32, const L: u32, const F: &'static str> pvt::Unique for Template
 #[macro_export]
 macro_rules! new {
     () => {
-        $crate::Template<{ std::column!() }, { std::line!() }, { std::file!() }>
+        $crate::Template<{
+            // SAFETY: the const generics values are the one stated in the docs for Set
+            unsafe {
+                $crate::Set::unique::<{ std::column!() }, { std::line!() }, { std::file!() }>()
+            }
+        }>
     };
 }

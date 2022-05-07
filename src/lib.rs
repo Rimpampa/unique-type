@@ -10,6 +10,9 @@
 
 // Required for having &str as a const generic
 #![feature(adt_const_params)]
+#![feature(const_type_id)]
+
+use std::any::TypeId;
 
 mod pvt {
     /// Private version of [`Unique`](super::Unique)
@@ -29,7 +32,7 @@ impl<T: pvt::Unique> Unique for T {}
 /// [`Set::unique`] function
 #[doc(hidden)]
 #[derive(PartialEq, Eq)]
-pub struct Set(u32, u32, &'static str);
+pub struct Set(TypeId);
 
 impl Set {
     /// Constructs a new set of values that are unique from any other
@@ -37,19 +40,30 @@ impl Set {
     ///
     /// # Safety
     ///
-    /// This function is safe only if:
-    /// - `C` is [`std::column!`]
-    /// - `L` is [`std::line!`]
-    /// - `F` is [`std::file!`]
-    pub const unsafe fn unique<const C: u32, const L: u32, const F: &'static str>() -> Self {
-        Self(C, L, F)
+    /// This function is safe only if `T` is a unique opaque type.
+    ///
+    /// For example, this is a valid usage:
+    /// ```ignore
+    /// Set::unique(&(|| {}))
+    /// ```
+    /// because from the [Rust Reference](https://doc.rust-lang.org/reference/types/closure.html):
+    /// > A closure expression produces a closure value with a unique,
+    /// > anonymous type that cannot be written out
+    ///
+    /// While this is an unsafe usage:
+    /// ```ignore
+    /// Set::unique(&0usize)
+    /// ```
+    /// because the usize type can be named
+    pub const unsafe fn unique<T>(_: &'static T) -> Self {
+        Self(TypeId::of::<T>())
     }
 }
 
 /// A template-like type for generating unique types
 ///
 /// The uniqueness of this type is based on the [`Set`] type which
-/// can only be safe constructed with unique values thus making every
+/// can only be safely constructed with unique values thus making every
 /// "specialization" of this type generate a different type-id
 #[doc(hidden)]
 pub struct Template<const T: Set>(());
@@ -84,9 +98,7 @@ macro_rules! new {
     () => {
         $crate::Template<{
             // SAFETY: the const generics values are the one stated in the docs for Set
-            unsafe {
-                $crate::Set::unique::<{ std::column!() }, { std::line!() }, { std::file!() }>()
-            }
+            unsafe { $crate::Set::unique(&(||{})) }
         }>
     };
 }

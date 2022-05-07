@@ -1,0 +1,7 @@
+[package]
+name = "unique-type"
+version = "0.1.0"
+edition = "2021"
+authors = ["Riccardo Ripanti <riccardo.ripanti01@gmail.com>"]
+
+[dependencies]

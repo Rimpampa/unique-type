@@ -13,7 +13,7 @@
 //! To require a type to be uniquely identifiable simply add a generic with the
 //! [`Unique`] trait bound:
 //! ```
-//! # use std::marker::PhantomData;
+//! # use core::marker::PhantomData;
 //! struct Struct<Tag: unique_type::Unique> {
 //!     // other fields ...
 //!     _marker: PhantomData<Tag>,
@@ -22,7 +22,7 @@
 //! Then when a value of that type is used, the [`new!`] macro can be used to declare the
 //! unique type for that value:
 //! ```
-//! # use std::marker::PhantomData;
+//! # use core::marker::PhantomData;
 //! # struct Struct<Tag: unique_type::Unique> { _marker: PhantomData<Tag> }
 //! # impl<Tag: unique_type::Unique> Struct<Tag> {
 //! #     fn new() -> Self { Self { _marker: PhantomData } }
@@ -37,7 +37,7 @@
 //! Requiring two (or more) parameters/fields to have the same tag is as
 //! easy as using the same generic for both of them:
 //! ```
-//! # struct Struct<Tag: unique_type::Unique> { _marker: std::marker::PhantomData<Tag> }
+//! # struct Struct<Tag: unique_type::Unique> { _marker: core::marker::PhantomData<Tag> }
 //! fn foo<Tag: unique_type::Unique>(a: Struct<Tag>, b: Struct<Tag>) {
 //!     todo!()
 //! }
@@ -45,7 +45,7 @@
 //! Now calling this function with two values that don't have the same tag will result in
 //! a compiler error:
 //! ```compile_fail E0308
-//! # struct Struct<Tag: unique_type::Unique> { _marker: std::marker::PhantomData<Tag> }
+//! # struct Struct<Tag: unique_type::Unique> { _marker: core::marker::PhantomData<Tag> }
 //! # fn foo<Tag: unique_type::Unique>(a: Struct<Tag>, b: Struct<Tag>) { todo!() }
 //! # fn main() {
 //! let a: Struct<unique_type::new!()> = todo!();
@@ -58,8 +58,9 @@
 // Required for having &str as a const generic
 #![feature(adt_const_params)]
 #![feature(const_type_id)]
+#![no_std]
 
-use std::any::TypeId;
+use core::any::TypeId;
 
 mod pvt {
     /// Private version of [`Unique`](super::Unique)
@@ -131,7 +132,7 @@ impl<const T: Set> pvt::Unique for Template<T> {}
 /// thus this will panic:
 /// ```should_panic
 /// # fn main() {
-/// # use std::any::TypeId;
+/// # use core::any::TypeId;
 /// assert_eq!(
 ///     TypeId::of::<unique_type::new!()>(),
 ///     TypeId::of::<unique_type::new!()>()

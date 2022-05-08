@@ -1,12 +1,59 @@
-//! # Unique Type
-//!
 //! The main feature of this crate is the macro [`new!`] which can be used
-//! to generate special **unique** opaque types.
+//! to generate special unique and anonymous types.
 //! In other words those are types that cannot be named and that are guardanteed
 //! to always be different from every other type.
 //!
 //! The [`Unique`] trait can be used in trait bounds for requiring a type
-//! to be generated from that macro.
+//! to be generated from the [`new!`] macro.
+//!
+//! Those types can then be used to "tag" other types to make them uniquely identifiable.
+//!
+//! # Tagging
+//!
+//! To require a type to be uniquely identifiable simply add a generic with the
+//! [`Unique`] trait bound:
+//! ```
+//! # use std::marker::PhantomData;
+//! struct Struct<Tag: unique_type::Unique> {
+//!     // other fields ...
+//!     _marker: PhantomData<Tag>,
+//! }
+//! ```
+//! Then when a value of that type is used, the [`new!`] macro can be used to declare the
+//! unique type for that value:
+//! ```
+//! # use std::marker::PhantomData;
+//! # struct Struct<Tag: unique_type::Unique> { _marker: PhantomData<Tag> }
+//! # impl<Tag: unique_type::Unique> Struct<Tag> {
+//! #     fn new() -> Self { Self { _marker: PhantomData } }
+//! # }
+//! # fn main() {
+//! let value = Struct::<unique_type::new!()>::new(/* ... */);
+//! # }
+//! ```
+//!
+//! # Identifying
+//!
+//! Requiring two (or more) parameters/fields to have the same tag is as
+//! easy as using the same generic for both of them:
+//! ```
+//! # struct Struct<Tag: unique_type::Unique> { _marker: std::marker::PhantomData<Tag> }
+//! fn foo<Tag: unique_type::Unique>(a: Struct<Tag>, b: Struct<Tag>) {
+//!     todo!()
+//! }
+//! ```
+//! Now calling this function with two values that don't have the same tag will result in
+//! a compiler error:
+//! ```compile_fail E0308
+//! # struct Struct<Tag: unique_type::Unique> { _marker: std::marker::PhantomData<Tag> }
+//! # fn foo<Tag: unique_type::Unique>(a: Struct<Tag>, b: Struct<Tag>) { todo!() }
+//! # fn main() {
+//! let a: Struct<unique_type::new!()> = todo!();
+//! let b: Struct<unique_type::new!()> = todo!();
+//! // a and b now have two different tags
+//! foo(a, b)
+//! # }
+//! ```
 
 // Required for having &str as a const generic
 #![feature(adt_const_params)]
@@ -40,19 +87,25 @@ impl Set {
     ///
     /// # Safety
     ///
-    /// This function is safe only if `T` is a unique opaque type.
+    /// This function is safe only if `T` is a unique and anonymous type.
     ///
     /// For example, this is a valid usage:
-    /// ```ignore
-    /// Set::unique(&(|| {}))
+    /// ```
+    /// # fn main() { unsafe {
+    /// # use unique_type::Set;
+    /// Set::unique(&(|| {}));
+    /// # } }
     /// ```
     /// because from the [Rust Reference](https://doc.rust-lang.org/reference/types/closure.html):
     /// > A closure expression produces a closure value with a unique,
     /// > anonymous type that cannot be written out
     ///
     /// While this is an unsafe usage:
-    /// ```ignore
-    /// Set::unique(&0usize)
+    /// ```
+    /// # fn main() { unsafe {
+    /// # use unique_type::Set;
+    /// Set::unique(&0usize);
+    /// # } }
     /// ```
     /// because the usize type can be named
     pub const unsafe fn unique<T>(_: &'static T) -> Self {

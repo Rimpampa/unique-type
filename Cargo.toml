@@ -3,5 +3,11 @@ name = "unique-type"
 version = "0.1.0"
 edition = "2021"
 authors = ["Riccardo Ripanti <riccardo.ripanti01@gmail.com>"]
+repository = "https://github.com/Rimpampa/unique-type"
+description = """
+Unique and anonymous types generation utilities
+"""
+keywords = ["type", "unique", "nightly", "no_std"]
+categories = ["rust-patterns", "no-std"]
 
 [dependencies]

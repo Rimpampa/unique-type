@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Riccardo Ripanti <riccardo.ripanti01@gmail.com>"]
 repository = "https://github.com/Rimpampa/unique-type"
+documentation = "https://docs.rs/unique-type/latest/"
 license = "MIT OR Apache-2.0"
 description = """
 Unique and anonymous types generation utilities

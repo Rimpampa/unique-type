@@ -1,3 +1,7 @@
+[![](https://img.shields.io/crates/v/unique-type)](https://crates.io/crates/unique-type)
+[![](https://img.shields.io/docsrs/unique-type)](https://docs.rs/unique-type/latest/)
+[![](https://img.shields.io/crates/l/unique-type)](https://github.com/Rimpampa/unique-type)
+
 # Unique Type
 
 This is (currently) a nightly only crate that provides some utilities

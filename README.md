@@ -38,3 +38,22 @@ clearly states the requirements to match for it to be considered unique.
 
 An additional protection is added by using the `#[doc(hidden)]` on those items that require
 more attention (and that in theory shouldn't be visibile outside the crate).
+
+# Type Aliasing
+
+This crate doesn't actually comply with my original idea of strict uniqueness, when I made it I didn't consider type aliases and associated types which allow multiple uses of the same `Unique` types.
+
+Example:
+```rust
+type FakeUnique = unique_type::new!();
+
+trait AssociatedFakeUnique {
+    type Type: unique_type::Unique;
+}
+
+struct FakeUniqueHolder;
+
+impl AssociatedFakeUnique for FakeUniqueHolder {
+    type Type = unique_type::new!();
+}
+```
